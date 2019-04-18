@@ -162,13 +162,16 @@ class Command:
         """
 
         # Ensure that there is a valid user whose email you can access.
+
         try:
             vic_username = self.args['-u']
         except KeyError:
             print("You didn't include an username.")
             vic_username = raw_input("What username would you like to add? (Only before the @ symbol): ")
 
-
+        if not self.cred_list.search_user(vic_username):
+            print("That user is not stored in your credential list. Please try again.")
+            return
 
         # Validate that there is a password saved.
         try:
@@ -332,11 +335,13 @@ class Command:
         """
 
         while(True):
-            usr_cmd = raw_input("PWN365->")
+            usr_cmd = raw_input("PWN365->").lower()
 
-            command, args = cls.parse_args(usr_cmd)
-
-            if(command not in Command._help_commands.keys()):
-                print("Command not supported. Please try again. ")
-            else:
-                return Command(command, cred_list, args)
+            try:
+                command, args = cls.parse_args(usr_cmd)
+                if(command not in Command._help_commands.keys()):
+                    print("Command not supported. Please try again.\n\n\n")
+                else:
+                    return Command(command, cred_list, args)
+            except IndexError:
+                print("The command options that you used were incorrect. Use 'help' to see the correct options.\n\n\n")

