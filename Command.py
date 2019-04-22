@@ -1,3 +1,4 @@
+import os
 from Outlook import Session
 from DataStorage import CredentialList
 
@@ -264,6 +265,12 @@ class Command:
             if file_attach == 'y':
                 file_attach      = True
                 target_file_path = raw_input('What is the file path of the file you wish to attach? ')
+
+                # Check to make sure file exists.
+                file_exists = os.path.isfile(target_file_path)
+                if not file_exists:
+                    print("That was not a valid file. Please try again.\n\n")
+
                 target_file_name = raw_input('What would you like to name the file? ')
                 break
             elif file_attach == 'n':

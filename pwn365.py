@@ -15,9 +15,9 @@ while True:
         print('Starting new session from ' + session_file)
         try:
             creds.import_file(session_file)
+            break
         except IOError:
             print("That was an invalid path. Please try again.")
-            break
 
         break
     elif continueLastSession == 'n':
@@ -29,8 +29,6 @@ while True:
 
 ###########################
 
-print('\n'*100)
-print(Command.leet_sauce)
 while(True):
     new_cmd = Command.get_command(creds)
     new_cmd.execute_command()

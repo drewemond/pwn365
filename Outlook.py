@@ -128,7 +128,6 @@ class Session:
                 count+=1
         return False
 
-# Hasn't been tested
     def attach_file(self, message, file_path, file_name):
         """Attaches a given file to a given message, and names as specified.
 
