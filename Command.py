@@ -29,7 +29,8 @@ class Command:
         'export' : 'Exports selected data.                         Syntax: export -d <data_type> -f <file_path> ',
         'import' : 'Imports data from selected file.               Syntax: import -f <file_path>',
         'add'    : 'Adds a credential.                             Syntax: add -u <username> -p <password> -d <domain>',
-        'phish'  : 'Sends phishing emails from a specified user.   Syntax: phish -u <username>'
+        'phish'  : 'Sends phishing emails from a specified user.   Syntax: phish -u <username>',
+        'spray'  : 'Runs a password spray against the given user.  Syntax: spray -u <username> -f <file_path>'
         }
 
     def __init__(self, command_str, cred_list, args):
@@ -147,7 +148,7 @@ class Command:
             password = self.args['-p']
         except KeyError:
             print("You didn't include an password.")
-            username = raw_input("What password would you like to add? (Leave empty for no pass): ")
+            password = raw_input("What password would you like to add? (Leave empty for no pass): ")
 
         try:
             domain = self.args['-d']
@@ -282,13 +283,41 @@ class Command:
         # Send away!
         hack.send_phishing_email(link_replace=replace_links, link=target_link, attach_file=file_attach, file_path=target_file_path, file_name=target_file_name)
 
+    def cmd_spray(self):
+        """Brute force an account with a specified password file.
+        """
+
+        username  = self.args['-u']
+        pass_file = self.args['-f']
+
+        # Verify that the user is in the credential List
+        if not self.cred_list.search_user(username):
+            print("That user is not in the credential list. Please add it before using this command.\n\n")
+
+        # Verify that the password file provided actually exists
+        file_exists = os.path.isfile(pass_file)
+        if not file_exists:
+            print("That was not a valid file. Please try again.\n\n")
+            return
+
+        #Start the spray
+        sess = Session(self.cred_list.get_domain(username), username)
+        cracked, password = sess.pass_spray(username, pass_file)
+
+        # If it was successful, set the user's password in the credential List
+        if cracked:
+            self.cred_list.set_password(username, password)
+            self.cred_list.set_verify(username, True)
+
+
     def cmd_clear(self):
         """Clear the current console.
-
         """
+
         print('\n'*100)
         print self.leet_sauce
 
+    # The master command list.
     _commands = {
         'help'   : cmd_help,
         'clear'  : cmd_clear,
@@ -297,7 +326,8 @@ class Command:
         'export' : cmd_export,
         'import' : cmd_import,
         'add'    : cmd_add,
-        'phish'  : cmd_phish
+        'phish'  : cmd_phish,
+        'spray'  : cmd_spray
         }
 
 # (Should work)
@@ -346,7 +376,7 @@ class Command:
 
             try:
                 command, args = cls.parse_args(usr_cmd)
-                if(command not in Command._help_commands.keys()):
+                if(command not in Command._commands.keys()):
                     print("Command not supported. Please try again.\n\n\n")
                 else:
                     return Command(command, cred_list, args)

