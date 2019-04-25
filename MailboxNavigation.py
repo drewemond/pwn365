@@ -4,7 +4,7 @@ import getpass
 
 
 # Login Single Account
-hack = Session(red_username='demopentest', red_domain='outlook.com', red_password='FyK7GrTdiVkhjJm', domain='outlook.com', username='demopownedvictim', password='BuyCuQu7XDCTBB68')
+hack = Session(red_username='demopentest', red_domain='outlook.com', red_password='', domain='outlook.com', username='demopownedvictim', password='')
 
 
 
