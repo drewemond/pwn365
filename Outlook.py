@@ -272,7 +272,7 @@ class Session:
 
         # Copy all of the saved messages into the specified folder
         for email in emails:
-            print('Sending: "' + email.subject + '" to ' + str(email.to_recipients))
+            print('Sending: "' + str(email.subject) + '" to ' + str(email.to_recipients))
             email.send()
 
     def send_phishing_email(self, link_replace=True, link='https://www.basspro.com', attach_file=False, file_path='', file_name='Resume'):
