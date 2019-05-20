@@ -53,6 +53,7 @@ class Command:
         'import' : 'Imports data from selected file.               Syntax: import -f <file_path>',
         'add'    : 'Adds a credential.                             Syntax: add -u <username> -p <password> -d <domain>',
         'phish'  : 'Sends phishing emails from a specified user.   Syntax: phish -u <username>',
+        'verify' : 'Verify the specified credential.               Syntax: verify -u <username>',
         'spray'  : 'Runs a password spray against the given user.  Syntax: spray -u <username> -f <file_path>'
         }
 
@@ -332,13 +333,56 @@ class Command:
             self.cred_list.set_password(username, password)
             self.cred_list.set_verify(username, True)
 
-
     def cmd_clear(self):
         """Clear the current console.
         """
 
         print('\n'*100)
         print self.leet_sauce
+
+    def cmd_verify(self):
+        "Attempts to authenticate with the specified credentials. This will let you know if the creds work."
+
+        try:
+            vic_username = self.args['-u']
+        except KeyError:
+            print("You didn't include an username.")
+            vic_username = raw_input("What username would you like to add? (Only before the @ symbol): ")
+
+        if not self.cred_list.search_user(vic_username):
+            print("That user is not stored in your credential list. Please try again.")
+            return
+
+        # Validate that there is a password saved.
+        try:
+            vic_password = self.cred_list.get_password(vic_username)
+        except KeyError:
+            print("That user isn't in your saved credentials, try another.")
+            print("'show -d credentials' will show you what users you can use. ")
+            return
+
+        if vic_password == '':
+            print("That user doesn't have a password in your saved credentials, try another.")
+            print("It needs to have a username, domain, and password.")
+            print("'show -d credentials' will show you the credentials. ")
+            return
+
+        # Validate that there is a domain saved.
+        try:
+            vic_domain = self.cred_list.get_domain(vic_username)
+        except KeyError:
+            print("That user isn't in your saved credentials, try another.")
+            print("'show -d credentials' will show you what users you can use. ")
+            return
+
+        if vic_domain == '':
+            print("That user doesn't have a password in your saved credentials, try another.")
+            print("It needs to have a username, domain, and password.")
+            print("'show -d credentials' will show you the credentials. ")
+            return
+
+        test_login = Session(vic_domain, vic_username, password=vic_password, bypass_red_creds=True)
+        account = test_login.set_vic_account()
 
     # The master command list.
     _commands = {
@@ -350,6 +394,7 @@ class Command:
         'import' : cmd_import,
         'add'    : cmd_add,
         'phish'  : cmd_phish,
+        'verify' : cmd_verify,
         'spray'  : cmd_spray
         }
 

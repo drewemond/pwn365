@@ -63,12 +63,13 @@ class Session:
     red_full_username = ''
     _red_account      = ''
 
-    def __init__(self, domain, username, password=''):
+    def __init__(self, domain, username, password='', bypass_red_creds=False):
         """Creates a Session object
 
         :param nDomain:      (String) The domain that is being authenticated to (ie. Champlain.edu)
         :param username:     (String) The username(s) that are going to be used to login
         :param password:     (String) The password(s) that are going to be used to login
+        :param red_username: (String) The username of the red_team account. ## This should be fixed
         """
 
         self.domain            = domain
@@ -83,7 +84,7 @@ class Session:
         if password != '':
             self._victim_account   = self.set_vic_account()
 
-        if(Session.red_username == ''):
+        if(Session.red_username == '' and not bypass_red_creds):
             Session.set_red_account()
 
     def set_vic_account(self):
